@@ -4,9 +4,14 @@ import server from './server';
 import todo from './client'
 const app = new Hono();
 
-app.use('/todo/*',
-  cors()
-)
+app.use(
+  '*',
+  cors({
+    origin: '*', // Allow all origins (change this to specific domains for better security)
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed methods
+    credentials: true, // Allow sending credentials (cookies, authorization headers, etc.)
+  })
+);
 
 app.route('/server',server)
 
