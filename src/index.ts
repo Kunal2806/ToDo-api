@@ -5,9 +5,9 @@ import todo from './client'
 const app = new Hono();
 
 app.use(
-  '*',
+  '/todo/*',
   cors({
-    origin: '*', // Allow all origins (change this to specific domains for better security)
+    origin: 'http://localhost:5173', // Allow all origins (change this to specific domains for better security)
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed methods
     credentials: true, // Allow sending credentials (cookies, authorization headers, etc.)
   })

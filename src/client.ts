@@ -1,21 +1,27 @@
-import {Hono} from 'hono';
+import { Context, Hono, Next } from 'hono';
 import bcrypt from 'bcryptjs';
-import { setCookie } from 'hono/cookie';
+import { setCookie, getCookie, deleteCookie } from 'hono/cookie';
 
-export type env = {
+type CustomContext = {
+  Bindings: {
     DB: D1Database;
-}
-const client = new Hono<{Bindings:env}>();
+  };
+  Variables: {
+    user: string; // Add custom property to the context
+  };
+};
 
+const client = new Hono<CustomContext>();
 
-client.get('/',(c)=>{
+// Home route
+client.get('/', (c) => {
+  if (!c.env.DB) {
+    return c.json({ message: 'Database is not initialized' }, 500);
+  }
+  return c.text('Client side working', 200);
+});
 
-        if(!c.env.DB){
-            return c.json({message:'Database is not initilized'},500)
-        }
-        return c.text('client side working',200);
-})
-
+// Signup route
 client.post('/signup', async (c) => {
   try {
     const { username, password } = await c.req.json();
@@ -53,6 +59,7 @@ client.post('/signup', async (c) => {
   }
 });
 
+// Login route
 client.post('/login', async (c) => {
   try {
     const { username, password } = await c.req.json();
@@ -72,13 +79,17 @@ client.post('/login', async (c) => {
     if (!isPasswordValid) {
       return c.json({ message: 'Incorrect password' }, 400);
     }
+    console.log(existingUser.username)
 
     setCookie(c, 'user-key', existingUser.username, {
       httpOnly: true,
-      secure: false, // Use secure: true in production with HTTPS
+      secure: true, 
+      sameSite:"none",
       path: '/',
-      maxAge: 0, // 1 day
+      maxAge: 86400,
+      // domain: '.localhost',
     });
+
 
     return c.json({ message: 'Login successful' }, 200);
   } catch (error) {
@@ -89,6 +100,29 @@ client.post('/login', async (c) => {
   }
 });
 
+// Middleware to verify authentication
+const authMiddleware = async (c: Context<CustomContext>, next: Next) => {
+  const userKey = getCookie(c, 'user-key');
 
+  if (!userKey) {
+    return c.json({ message: 'Unauthorized: Please log in.' }, 401);
+  }
+
+  // Attach the user information to the context
+  c.set('user', userKey);
+  await next();
+};
+
+// Protected route
+client.get('/protected', authMiddleware, (c) => {
+  const user = c.get('user'); // Retrieve user info from context
+  return c.json({ message: `Welcome, ${user}! This is a protected route.` });
+});
+
+// Logout route
+client.post('/logout', (c) => {
+  deleteCookie(c, 'user-key', { path: '/' });
+  return c.json({ message: 'Logged out successfully.' });
+});
 
 export default client;
