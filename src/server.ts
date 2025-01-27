@@ -19,4 +19,16 @@ server.get('/users', async (c)=>{
         error:error instanceof Error? error.message: "Unknown error"},500)
     }
   })
+
+  // server.delete('/delete', async (c)=>{
+  //   try{
+  //   await c.env.DB.prepare('delete from register').all();
+  //   }
+  //   catch(error){
+  //     return c.text("can not delete");
+  //   }
+  //   return c.json({
+  //     message : "deleted all"
+  //   },200)
+  // })
 export default server;

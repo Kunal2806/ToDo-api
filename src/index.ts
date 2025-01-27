@@ -1,7 +1,7 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import server from './server';
-import todo from './client'
+import client from './client'
 const app = new Hono();
 
 app.use(
@@ -15,7 +15,7 @@ app.use(
 
 app.route('/server',server)
 
-app.route('/todo',todo)
+app.route('/client',client)
 
 app.get('/',(c)=>{
   return c.json({message:'working'},200);

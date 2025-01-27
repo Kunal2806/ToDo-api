@@ -13,20 +13,12 @@ type CustomContext = {
 
 const client = new Hono<CustomContext>();
 
-// Home route
-client.get('/', (c) => {
-  if (!c.env.DB) {
-    return c.json({ message: 'Database is not initialized' }, 500);
-  }
-  return c.text('Client side working', 200);
-});
-
 // Signup route
 client.post('/signup', async (c) => {
   try {
     const { username, password } = await c.req.json();
     if (!username || !password) {
-      return c.json({ message: 'Username and password are required.' }, 400);
+      return c.json({ message: 'Username and password both are required.' },400);
     }
 
     // Check if username already exists
@@ -114,9 +106,69 @@ const authMiddleware = async (c: Context<CustomContext>, next: Next) => {
 };
 
 // Protected route
-client.get('/protected', authMiddleware, (c) => {
-  const user = c.get('user'); // Retrieve user info from context
-  return c.json({ message: `Welcome, ${user}! This is a protected route.` });
+// client.get('/protected/*', authMiddleware, (c) => {
+//   const user = c.get('user'); // Retrieve user info from context
+//   return c.json({ message: `Welcome, ${user}! This is a protected route.` });
+// });
+
+client.post('/protected/task', authMiddleware, async (c) => {
+  try {
+    const user = c.get('user');
+    const res = await c.env.DB.prepare('SELECT user_id FROM register WHERE username = ?')
+      .bind(user)
+      .first();
+
+      if(!res){
+        return c.json({message: "user not found"})
+      }
+      const user_id = res.user_id;
+
+    const { title, task_color, alert, duedate } = await c.req.json();
+
+    // Validate input
+    if (!title || !task_color || alert === undefined || !duedate) {
+      return c.json({ message: 'All fields (title, task_color, alert, duedate) must be provided' }, 400);
+    }
+
+    // Validate `duedate`
+    const dueDate = new Date(duedate);
+    if (isNaN(dueDate.getTime())) {
+      return c.json({ message: 'Invalid due date format' }, 400);
+    }
+
+    await c.env.DB.prepare(
+      'INSERT INTO task_data (user_id, title, task_color, alert, duedate) VALUES (?, ?, ?, ?, ?)'
+    )
+      .bind(user_id, title, task_color, alert, dueDate.toISOString())
+      .run();
+
+    return c.json({ message: 'Task successfully added' }, 200);
+  } catch (error) {
+    console.error(error);
+    return c.json({ message: 'An error occurred'}, 500);
+  }
+});
+
+client.get('/protected/gettask', authMiddleware, async (c) => {
+ 
+    const user = c.get('user');
+    const res = await c.env.DB.prepare('SELECT user_id FROM register WHERE username = ?')
+      .bind(user)
+      .first();
+
+      if(!res){
+        return c.json({message: "user not found"})
+      }
+      const user_id = res.user_id;
+    if (!user || !user_id) {
+      return c.json({ message: 'User not found' }, 400);
+    }
+    
+    const tasks = await c.env.DB.prepare('SELECT * FROM task_data WHERE user_id = ?')
+      .bind(user_id)
+      .all();
+
+    return c.json(tasks.results, 200);
 });
 
 // Logout route
