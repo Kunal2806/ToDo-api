@@ -106,10 +106,10 @@ const authMiddleware = async (c: Context<CustomContext>, next: Next) => {
 };
 
 // Protected route
-// client.get('/protected/*', authMiddleware, (c) => {
-//   const user = c.get('user'); // Retrieve user info from context
-//   return c.json({ message: `Welcome, ${user}! This is a protected route.` });
-// });
+client.get('/protected/*', authMiddleware, (c) => {
+  const user = c.get('user'); // Retrieve user info from context
+  return c.json({ message: `Welcome, ${user}! This is a protected route.` });
+});
 
 client.post('/protected/task', authMiddleware, async (c) => {
   try {
