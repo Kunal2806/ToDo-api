@@ -106,7 +106,7 @@ const authMiddleware = async (c: Context<CustomContext>, next: Next) => {
 };
 
 // Protected route
-client.get('/protected/*', authMiddleware, (c) => {
+client.get('/protected', authMiddleware, (c) => {
   const user = c.get('user'); // Retrieve user info from context
   return c.json({ message: `Welcome, ${user}! This is a protected route.` });
 });
@@ -123,23 +123,18 @@ client.post('/protected/task', authMiddleware, async (c) => {
       }
       const user_id = res.user_id;
 
-    const { title, task_color, alert, duedate } = await c.req.json();
+    const { title, task_color, alert, date, time } = await c.req.json();
 
     // Validate input
-    if (!title || !task_color || alert === undefined || !duedate) {
+    if (!title || !task_color || alert === undefined || !date || !time) {
       return c.json({ message: 'All fields (title, task_color, alert, duedate) must be provided' }, 400);
     }
 
-    // Validate `duedate`
-    const dueDate = new Date(duedate);
-    if (isNaN(dueDate.getTime())) {
-      return c.json({ message: 'Invalid due date format' }, 400);
-    }
 
     await c.env.DB.prepare(
-      'INSERT INTO task_data (user_id, title, task_color, alert, duedate) VALUES (?, ?, ?, ?, ?)'
+      'INSERT INTO task_data (user_id, title, task_color, alert, date, time) VALUES (?, ?, ?, ?, ?, ?)'
     )
-      .bind(user_id, title, task_color, alert, dueDate.toISOString())
+      .bind(user_id, title, task_color, alert, date, time)
       .run();
 
     return c.json({ message: 'Task successfully added' }, 200);

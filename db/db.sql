@@ -16,6 +16,7 @@ create table task_data(
     task_color text, 
     status text default 'pending', 
     alert text, 
-    duedate timestamp not null, 
+    date date not null,
+    time time not null,
     foreign key (user_id) references register(user_id) on delete cascade
     );
