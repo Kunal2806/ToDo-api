@@ -187,7 +187,24 @@ client.get('/protected/getalert', authMiddleware, async (c) => {
 
   return c.json(tasks.results, 200);
 });
+
+client.delete('/protected/delete/task/:id',authMiddleware,async (c)=>{
+  const task_id = c.req.param('id');
+  await c.env.DB.prepare('delete from task_data where task_id = ?')
+  .bind(task_id)
+  .run();
+  return c.json({message:"delete"},200)
+})
+client.put('/protected/edit/task/:id',authMiddleware,async (c)=>{
+  const task_id = c.req.param('id');
+  const {status} = await c.req.json();
+  await c.env.DB.prepare('update task_data set status = ? where task_id = ?')
+  .bind(status,task_id)
+  .run();
+  return c.json({message:"edited"},200)
+})
 // Logout route
+
 client.post('/logout', (c) => {
   deleteCookie(c, 'user-key', { path: '/' });
   return c.json({ message: 'Logged out successfully.' });
