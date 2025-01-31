@@ -145,7 +145,6 @@ client.post('/protected/task', authMiddleware, async (c) => {
 });
 
 client.get('/protected/gettask', authMiddleware, async (c) => {
- 
     const user = c.get('user');
     const res = await c.env.DB.prepare('SELECT user_id FROM register WHERE username = ?')
       .bind(user)
@@ -161,6 +160,28 @@ client.get('/protected/gettask', authMiddleware, async (c) => {
     
     const tasks = await c.env.DB.prepare('SELECT * FROM task_data WHERE user_id = ?')
       .bind(user_id)
+      .all();
+
+    return c.json(tasks.results, 200);
+});
+
+client.get('/protected/gettask/:date', authMiddleware, async (c) => {
+  const date = c.req.param('date');
+    const user = c.get('user');
+    const res = await c.env.DB.prepare('SELECT user_id FROM register WHERE username = ?')
+      .bind(user)
+      .first();
+
+      if(!res){
+        return c.json({message: "user not found"})
+      }
+      const user_id = res.user_id;
+    if (!user || !user_id) {
+      return c.json({ message: 'User not found' }, 400);
+    }
+    
+    const tasks = await c.env.DB.prepare('SELECT * FROM task_data WHERE user_id = ? and date = ?')
+      .bind(user_id,date)
       .all();
 
     return c.json(tasks.results, 200);
