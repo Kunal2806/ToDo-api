@@ -7,7 +7,7 @@ const app = new Hono();
 app.use(
   '/*',
   cors({
-    origin: 'https://to-do-virid-xi.vercel.app/', // Allow all origins (change this to specific domains for better security)
+    origin: 'https://to-do-virid-xi.vercel.app', // Allow all origins (change this to specific domains for better security)
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed methods
     credentials: true, // Allow sending credentials (cookies, authorization headers, etc.)
   })
