@@ -1,5 +1,5 @@
 import {Hono} from 'hono';
-
+import { getCookie } from 'hono/cookie';
 export type env = {
     DB:D1Database;
 }
@@ -19,6 +19,8 @@ server.get('/users', async (c)=>{
         error:error instanceof Error? error.message: "Unknown error"},500)
     }
   })
+
+
 
   // server.delete('/delete', async (c)=>{
   //   try{

@@ -209,6 +209,47 @@ client.get('/protected/getalert', authMiddleware, async (c) => {
   return c.json(tasks.results, 200);
 });
 
+client.post('/protected/contact',authMiddleware, async(c)=>{
+  const username = c.get('user');
+  const {msg} = await c.req.json();
+  console.log(username,msg);
+
+  if(!msg || !username){
+    return c.json({message: 'username & message required'});
+  }
+  await c.env.DB.prepare('insert into contact (username, message) values (?,?) ')
+  .bind(username, msg)
+  .run();
+  return c.json({message:'sent successfully'},200)
+})
+
+client.get('/contact/get', async(c)=>{
+  const message = await c.env.DB.prepare('select * from contact')
+  .all();
+  return c.json(message.results)
+})
+
+client.post('/protected/contact', authMiddleware, async (c) => {
+  try {
+    const username = c.get('user'); // Ensure auth middleware sets 'user'
+    const { msg } = await c.req.json();
+
+    if (!msg || !username) {
+      return c.json({ message: 'Username & message required' }, 400);
+    }
+
+    await c.env.DB.prepare('INSERT INTO contact (username, message) VALUES (?, ?)')
+      .bind(username, msg)
+      .run();
+
+    return c.json({ message: 'Sent successfully' }, 200);
+  } catch (error) {
+    console.error('Error:', error);
+    return c.json({ message: 'Internal Server Error' }, 500);
+  }
+});
+
+
 client.delete('/protected/delete/task/:id',authMiddleware,async (c)=>{
   const task_id = c.req.param('id');
   await c.env.DB.prepare('delete from task_data where task_id = ?')

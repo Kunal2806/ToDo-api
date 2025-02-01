@@ -5,7 +5,7 @@ import client from './client'
 const app = new Hono();
 
 app.use(
-  '/client/*',
+  '/*',
   cors({
     origin: 'http://localhost:5173', // Allow all origins (change this to specific domains for better security)
     allowMethods: ['GET', 'POST', 'PUT', 'DELETE'], // Allowed methods
