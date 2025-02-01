@@ -1,5 +1,4 @@
 import {Hono} from 'hono';
-import { getCookie } from 'hono/cookie';
 export type env = {
     DB:D1Database;
 }

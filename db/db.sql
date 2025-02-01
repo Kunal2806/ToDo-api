@@ -21,7 +21,7 @@ create table task_data(
     foreign key (user_id) references register(user_id) on delete cascade
     );
 
-    drop table if exists message;
+drop table if exists contact;
     create table contact(
         username text not null,
         message text 
